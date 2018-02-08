@@ -1,13 +1,20 @@
-#AutoIt3Wrapper_UseX64=y ; Set to Y or N depending on your situation/preference!!
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Outfile_type=a3x
+#AutoIt3Wrapper_Compile_Both=y
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #include-once
+#include <AutoItConstants.au3>
+#include <MsgBoxConstants.au3>
+#include <Array.au3>
 
-#Region When running compiled script, Install needed DLLs if they don't exist yet
-If Not FileExists("Ressources\dlls") Then DirCreate("Ressources\dlls")
-If Not FileExists("Ressources\dlls\ImageSearchDLLx32.dll") Then FileInstall("Ressources\dlls\ImageSearchDLLx32.dll", "Ressources\dlls\ImageSearchDLLx32.dll", 1);FileInstall ( "source", "dest" [, flag = 0] )
-If Not FileExists("Ressources\dlls\ImageSearchDLLx64.dll") Then FileInstall("Ressources\dlls\ImageSearchDLLx64.dll", "Ressources\dlls\ImageSearchDLLx64.dll", 1)
-If Not FileExists("Ressources\dlls\msvcr110d.dll") Then FileInstall("Ressources\dlls\msvcr110d.dll", "Ressources\dlls\msvcr110d.dll", 1);Microsoft Visual C++ Redistributable dll x64
-If Not FileExists("Ressources\dlls\msvcr110.dll") Then FileInstall("Ressources\dlls\msvcr110.dll", "Ressources\dlls\msvcr110.dll", 1);Microsoft Visual C++ Redistributable dll x32
-#EndRegion
+
+#Region When running compiled/script, Install needed DLLs if they don't exist yet
+If Not FileExists("Ressources/dlls") Then DirCreate("Ressources\dlls")
+If Not FileExists("Ressources/dlls/ImageSearchDLLx32.dll") Then FileInstall("Ressources/dlls/ImageSearchDLLx32.dll", "Ressources/dlls/ImageSearchDLLx32.dll", 1);FileInstall ( "source", "dest" [, flag = 0] )
+If Not FileExists("Ressources/dlls/ImageSearchDLLx64.dll") Then FileInstall("Ressources/dlls/ImageSearchDLLx64.dll", "Ressources/dlls/ImageSearchDLLx64.dll", 1)
+If Not FileExists("Ressources/dlls/msvcr110d.dll") Then FileInstall("Ressources/dlls/msvcr110d.dll", "Ressources/dlls/msvcr110d.dll", 1);Microsoft Visual C++ Redistributable dll x64
+If Not FileExists("Ressources/dlls/msvcr110.dll") Then FileInstall("Ressources/dlls/msvcr110.dll", "Ressources/dlls/msvcr110.dll", 1);Microsoft Visual C++ Redistributable dll x32
+#EndRegion/
 
 Local $h_ImageSearchDLL = -1; Will become Handle returned by DllOpen() that will be referenced in the _ImageSearchRegion() function
 
@@ -17,12 +24,12 @@ Func _ImageSearchStartup()
 	$sAutoItX64 = @AutoItX64 ;Check if using x64 AutoIt ;@AutoItX64 Returns 1 if the script is running under the native x64 version of AutoIt.
 	If $sOSArch = "X86" Or $sAutoItX64 = 0 Then
 		cr("+>" & "@OSArch=" & $sOSArch & @TAB & "@AutoItX64=" & $sAutoItX64 & @TAB & "therefore using x32 ImageSearch DLL")
-		$h_ImageSearchDLL = DllOpen("/WINDOWS/ImageSearchDLLx32.dll")
+		$h_ImageSearchDLL = DllOpen("Ressources/dlls/ImageSearchDLLx32.dll")
 		If $h_ImageSearchDLL = -1 Then Return "DllOpen failure"
 	ElseIf $sOSArch = "X64" And $sAutoItX64 = 1 Then
 		cr("+>" & "@OSArch=" & $sOSArch & @TAB & "@AutoItX64=" & $sAutoItX64 & @TAB & "therefore using x64 ImageSearch DLL")
-		$h_ImageSearchDLL = DllOpen("/WINDOWS/ImageSearchDLLx64.dll")
-		If $h_ImageSearchDLL = -1 Then Return "DllOpen failure"
+		$h_ImageSearchDLL = DllOpen("Ressources/dlls/ImageSearchDLLx64.dll")
+		If $h_ImageSearchDLL = -1 Then	Return "DllOpen failure"
 	Else
 		Return "Inconsistent or incompatible Script/Windows/CPU Architecture"
 	EndIf
@@ -47,7 +54,7 @@ EndFunc   ;==>_ImageSearchShutdown
 ;								can be a single image address or a array 
 ;								containning the amount of images inthe [0] 
 ;								position and the set of images in the subsequent positions
-;					$waitSecs - The amount of seconds to wait for the images
+;					$waitMilis - The amount of Miliseconds to wait for the images
 ;                   $resultPosition - Set where the returned x,y location of the image is.
 ;                                     1 for centre of image, 0 for top left of image
 ;                   $x $y - Return the x and y location of the image
@@ -63,38 +70,52 @@ EndFunc   ;==>_ImageSearchShutdown
 ; Note: Use _ImageSearch to search the entire desktop, _ImageSearchArea to specify
 ;       a desktop region to search
 ;============================================================================================================================================================================================
-Func _WaitForImageSearchArea($findImages,$waitSecs, $resultPosition, $left, $top, $right, $bottom, ByRef $x, ByRef $y, $tolerance = 0, $transparency = 0)
-	If Not IsArray($findImages) Then 
-		Dim $findImage[2]
-		$findImage[0]=1
-		$findImage[1]=$findImages
-	Else 
-		$findImage=$findImages
+Func _WaitForImagesSearchArea($findImages,$waitMilis, $left, $top, $right, $bottom, $resultPosition = 1, $tolerance = 0, $transparency = 0)
+	If Not IsArray($findImages) Then
+	    Dim $findImage[1]
+        Dim $Results[1][2]
+        $findImage[0] = $findImages
+	Else
+        Dim $Results[Ubound($findImages)][2]
+	    Dim $findImage[Ubound($findImages)]
+        $findImage = $findImages
 	EndIf
-	If $tolerance < 0 Or $tolerance > 255 Then $tolerance = 0
+
 	If $h_ImageSearchDLL = -1 Then _ImageSearchStartup()
-	$waitSecs = $waitSecs * 1000
 	$startTime = TimerInit()
+
+    ;threat the images strings
+    for $i = 0 to Ubound($findImage)-1
+        $Results[$i][0] = Null
+		If $transparency <> 0 Then $findImage[$i] = "*" & $transparency & " " & $findImage[$i]
+		If $tolerance > 0 And $tolerance <= 255 Then $findImage[$i] = "*" & $tolerance & " " & $findImage[$i]
+    Next
+
+    ;search for the images
+
 	Do
-		For $i = 1 To $findImage[0]
-			If $transparency <> 0 Then $findImage = "*" & $transparency & " " & $findImage
-			If $tolerance > 0 Then $findImage = "*" & $tolerance & " " & $findImage
-			;If Not FileExists($findImage[$i]) Then Return "Image ["& $i  &"] File not found"
-			$result = DllCall($h_ImageSearchDLL, "str", "ImageSearch", "int", $left, "int", $top, "int", $right, "int", $bottom, "str", $findImage[$i])
-			If @error Then Return "DllCall Error=" & @error
+        $Complete = True
+		For $i = 0 To Ubound($findImage)-1
+			If $Results[$i][0] = Null Then 
+                $result = DllCall($h_ImageSearchDLL, "str", "ImageSearch", "int", $left, "int", $top, "int", $right, "int", $bottom, "str", $findImage[$i])
+                If @error Then Return "DllCall Error=" & @error
+
+
+                $array = StringSplit($result[0], "|")
+                If UBound($array) >= 4 Then
+                    $Results[$i][0] = $array[2]
+                    $Results[$i][1] = $array[3]
+                     If $resultPosition = 1 Then
+                        $Results[$i][0] = $Results[$i][0] + Int(Number($array[4]) / 2)
+                        $Results[$i][1] = $Results[$i][1] + Int(Number($array[5]) / 2)
+                    EndIf
+                EndIf
+            EndIf
+            If $Results[$i][0] = Null Then $Complete = False
 		Next
-		$array = StringSplit($result[0], "|")
-	Until TimerDiff($startTime) >= $waitSecs Or UBound($array) >= 4
-	If $result = "0" Or Not IsArray($result) Or $result[0] = "0" Then Return False
-	If (UBound($array) >= 4) Then
-		$x = Int(Number($array[2])); Get the x,y location of the match
-		$y = Int(Number($array[3]))
-		If $resultPosition = 1 Then
-			$x = $x + Int(Number($array[4]) / 2); Account for the size of the image to compute the centre of search
-			$y = $y + Int(Number($array[5]) / 2)
-		EndIf
-		Return True
-	EndIf
+
+	Until TimerDiff($startTime) > $waitMilis Or $Complete
+    Return $Results
 EndFunc   ;==>_WaitForImagesSearch
 #EndRegion ImageSearch UDF;slightly modified
 ;===============================================================================
@@ -118,25 +139,18 @@ EndFunc   ;==>_WaitForImagesSearch
 ; Note: Use _ImageSearch to search the entire desktop, _ImageSearchArea to specify
 ;       a desktop region to search
 ;============================================================================================================================================================================================
-Func _ImageSearch($findImage, $resultPosition, ByRef $x, ByRef $y, $tolerance=0, $transparency = 0)																					;OK
-	Return _WaitForImageSearchArea($findImage,0, $resultPosition,0,0, @DesktopWidth, @DesktopHeight,$x, $y, $tolerance, $transparency)
+Func _ImageSearch($findImage, $resultPosition = 1, $tolerance = 0, $transparency = 0)																					;OK
+	Return _WaitForImagesSearchArea($findImage,0,0,0, @DesktopWidth, @DesktopHeight, $resultPosition, $tolerance, $transparency)
 EndFunc   ;==>_ImageSearch
 
-Func _ImageSearchArea($findImage, $resultPosition, $left, $top, $right, $bottom, ByRef $x, ByRef $y, $tolerance = 0, $transparency = 0);Credits to Sven for the Transparency addition	;OK
-	Return _WaitForImageSearchArea($findImage,0, $resultPosition, $left, $top, $right, $bottom,$x, $y, $tolerance, $transparency)
+Func _ImageSearchArea($findImage, $left, $top, $right, $bottom, $resultPosition = 1, $tolerance = 0, $transparency = 0);Credits to Sven for the Transparency addition	;OK
+	Return _WaitForImagesSearchArea($findImage,0, $left, $top, $right, $bottom, $resultPosition, $tolerance, $transparency)
 EndFunc
 ;============================================================================================================================================================================================
-Func _WaitForImageSearch($findImage, $waitSecs, $resultPosition, ByRef $x, ByRef $y, $tolerance=0, $transparency = 0)
-	Return _WaitForImageSearchArea($findImage,$waitSecs, $resultPosition,0,0, @DesktopWidth, @DesktopHeight,$x, $y, $tolerance, $transparency)
+Func _WaitForImageSearch($findImage, $waitSecs, $resultPosition = 1, $tolerance=0, $transparency = 0)
+	Return _WaitForImagesSearchArea($findImage,$waitSecs,0,0, @DesktopWidth, @DesktopHeight, $resultPosition , $tolerance, $transparency)
 EndFunc   ;==>_WaitForImageSearch
-;============================================================================================================================================================================================
-;Func _WaitForImagesSearch($findImage, $waitSecs, $resultPosition, ByRef $x, ByRef $y, $tolerance=0, $transparency = 0)
-;	Return _WaitForImagesSearchArea($findImage,$waitSecs, $resultPosition,0,0, @DesktopWidth, @DesktopHeight,$x, $y, $tolerance, $transparency)
-;EndFunc   ;==>_WaitForImagesSearch
-;============================================================================================================================================================================================
-;Func _WaitForImageSearchArea($findImage,$waitSecs, $resultPosition, $left, $top, $right, $bottom, ByRef $x, ByRef $y, $tolerance = 0, $transparency = 0)
-;	Return _WaitForImagesSearchArea($findImage,0, $resultPosition,0,0, @DesktopWidth, @DesktopHeight,$x, $y, $tolerance, $transparency)
-;EndFunc   ;==>_WaitForImageSearchArea
+
 ;============================================================================================================================================================================================
 #Region My Custom ConsoleWrite/debug Function
 Func cr($text = "", $addCR = 1, $printTime = False) ;Print to console

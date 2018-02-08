@@ -4,11 +4,11 @@
 #include <Color.au3>
 
 ;setup inicial - variaveis
-$Splash = "icons/splash.jpg"
 Dim $Icon[20],$InvPos[2], $InvSz[2], $DepFull[4], $IgnoreStock[3]
 Global $tmx=0,$tmy=0, $Line=0,$GameFound=False,$Exit = False,$Activated = False, $GUI = False, $RecycleAll=False
 Opt("WinTitleMatchMode", 2)     ;1=start, 2=subStr, 3=exact, 4=advanced, -1 to -4=Nocase
 GUICreate("Teste", 100,100,@DesktopWidth-150,@DesktopHeight-150,BitOR($WS_EX_LAYERED, $WS_EX_MDICHILD), $WS_EX_TOPMOST)
+$Splash = "icons/splash.jpg"
 $Icon[0]="icons/1.bmp"
 $Icon[1]="icons/2.bmp"
 $Icon[2]="icons/3.bmp"
@@ -26,7 +26,7 @@ $Icon[13]="icons/14.bmp"
 $Icon[14]="icons/15.bmp"
 $Icon[15]="icons/16.bmp"
 
-;0=icone do jogo	1=botao maximizar	2=borda fora do fullscreen	3=icone inventario	4=borda supesq inventario	5=borda infdir inventario 32x30	6=botão fecha	7=Chrome pentelho
+;0=icone do jogo	1=botao maximizar	2=borda fora do fullscreen	3=icone inventario	4=borda supesq inventario	5=borda infdir inventario 32x30	6=botï¿½o fecha	7=Chrome pentelho
 ;8=IronFull	9=ClothFull	10=WoodFull	11=EmptySpace	12=recycling...	13 = Recycle button	14=Cancelar	15=Confirmar
 
 ;teclas atalho
@@ -53,7 +53,7 @@ Func Setup()
 	Local $tx=0, $ty=0, $Search=False
 	If WinActivate("The Last Stand: Dead Zone") == 0 Then	;procura janela do jogo
 		If _ImageSearch($Icon[0], 1, $tx, $ty, 1) = False Then ;procura icone do jogo
-			MsgBox(4096,"ERRO!","A janela do jogo não foi encontrada!")
+			MsgBox(4096,"ERRO!","A janela do jogo nï¿½o foi encontrada!")
 		Else
 			MouseClick("left", $tx, $ty, 1,0)	;se o icone foi encontrado, clicka nele
 			$GameFound = True
@@ -102,7 +102,7 @@ EndFunc
 
 Func KeyPressed()
 	If $Activated Then
-		If Not Recycle(@HotKeyPressed, $Line) Then MsgBox(4096, "", "não há itens nessa posição")
+		If Not Recycle(@HotKeyPressed, $Line) Then MsgBox(4096, "", "nï¿½o hï¿½ itens nessa posiï¿½ï¿½o")
 	EndIf
 EndFunc
 
@@ -174,7 +174,7 @@ Func RecycleALl()
 		EndIf
 	WEnd
 EndFunc
-;funções principais
+;funï¿½ï¿½es principais
 Func Activate ()
 	beep (600,200)
 	Call("SetInv")
