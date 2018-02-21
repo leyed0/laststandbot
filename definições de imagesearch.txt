@@ -1,0 +1,32 @@
+_WaitForImagesSearchArea($findImages,$waitMilis, $left, $top, $right, $bottom, $resultPosition = 1, $tolerance = 0, $transparency = 0)
+
+_WaitForImageSearch($findImage, $waitMilis, $resultPosition = 1, $tolerance=0, $transparency = 0)
+
+_ImageSearchArea($findImage, $left, $top, $right, $bottom, $resultPosition = 1, $tolerance = 0, $transparency = 0)
+
+_ImageSearch($findImage, $resultPosition = 1, $tolerance = 0, $transparency = 0)
+
+
+
+A biblioteca ImageSearch é versatil e funciona com imagens individuais ou vetores de imagens
+
+
+O formato de retorno da biblioteca é da seguinte forma:
+
+Vetor Nulo = Nenhuma imagem foi encontrada
+
+vetor [x][y] onde 	x indica o indice da imagem que é 0 em modos de imagem unica e variavel de acordo com o tamanho do vetor.
+			y indica a coordenada desejada, onde 0 indica a coordenada vertical e y a coordenada horizontal
+
+
+chamadas:
+
+$findImages = imagem ou vetor de imagens a serem encontradas
+$waitMilis = tempo a esperar em miliseconds
+$left = coordenada vertical esquerda da area desejada para a pesquisa
+$top = coordenada horizontal superior da area desejada para a pesquisa
+$right = coordenada vertical direita da area desejada para a pesquisa
+$bottom = coordenada horizontal inferior da area desejada para a pesquisa
+$resultPosition = define o formato das coordenadas retornadas. Se serão no centro da imagem(1) ou na ponta superior esquerda(0).
+
+$tolerance = 0, $transparency = 0 ----> Não utilizar. O codigo falha

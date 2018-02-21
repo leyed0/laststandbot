@@ -33,7 +33,7 @@ $Icon[15]="Ressources/icons/16.bmp"
 
 
 HotKeySet("{numpad0}", "Close")
-HotKeySet("d", "SetReciclaMouse")
+HotKeySet("{delete}", "SetReciclaMouse")
 
 
 
@@ -41,8 +41,11 @@ WinActivate("The Last Stand: Dead Zone")
 
 
 While($IsRunning)
+    If _IsPressed("02") Then 
+        Call("ReciclaMouse")       ;clique direito
+        $IsRecicle = False
+    EndIf
     If $IsRecicle Then Call("ReciclaMouse")
-    If _IsPressed("02") Then Call("ReciclaMouse")       ;clique direito
 WEnd
 
 

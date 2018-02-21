@@ -142,13 +142,13 @@ EndFunc   ;==>_WaitForImagesSearch
 Func _ImageSearch($findImage, $resultPosition = 1, $tolerance = 0, $transparency = 0)																					;OK
 	Return _WaitForImagesSearchArea($findImage,0,0,0, @DesktopWidth, @DesktopHeight, $resultPosition, $tolerance, $transparency)
 EndFunc   ;==>_ImageSearch
-
+;============================================================================================================================================================================================
 Func _ImageSearchArea($findImage, $left, $top, $right, $bottom, $resultPosition = 1, $tolerance = 0, $transparency = 0);Credits to Sven for the Transparency addition	;OK
 	Return _WaitForImagesSearchArea($findImage,0, $left, $top, $right, $bottom, $resultPosition, $tolerance, $transparency)
 EndFunc
 ;============================================================================================================================================================================================
-Func _WaitForImageSearch($findImage, $waitSecs, $resultPosition = 1, $tolerance=0, $transparency = 0)
-	Return _WaitForImagesSearchArea($findImage,$waitSecs,0,0, @DesktopWidth, @DesktopHeight, $resultPosition , $tolerance, $transparency)
+Func _WaitForImageSearch($findImage, $waitMilis, $resultPosition = 1, $tolerance=0, $transparency = 0)
+	Return _WaitForImagesSearchArea($findImage,$waitMilis,0,0, @DesktopWidth, @DesktopHeight, $resultPosition , $tolerance, $transparency)
 EndFunc   ;==>_WaitForImageSearch
 
 ;============================================================================================================================================================================================
